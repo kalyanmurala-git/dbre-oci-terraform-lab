@@ -3,7 +3,6 @@ OCI Free Tier Multi-ATP Terraform Lab for Database Reliability Engineering (DBRE
 
 # OCI DBRE Terraform Lab: Multi-ATP Provisioning
 
-****Infrastructure as Code (IaC)** for **Oracle Cloud Infrastructure (OCI) Always Free Tier** - provisioning **2 Autonomous Transaction Processing (ATP)** databases using **Terraform `for_each`** pattern.**
 
 OCI Free Tier (ap-hyderabad-1)
 ├── Compartment: Root/Tenancy
@@ -14,7 +13,8 @@ OCI Free Tier (ap-hyderabad-1)
 └── Connectivity: Wallet + sqlcl/OCI CLI
 
 
-## ✨ Features
+ Features
+ =========================================================================================================
 
 | Feature | Status | Description |
 |---------|--------|-------------|
