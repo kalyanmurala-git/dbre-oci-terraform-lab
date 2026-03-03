@@ -24,9 +24,8 @@ OCI Free Tier (ap-hyderabad-1)
 | DBRE Workflows | ✅ | Destroy/recreate, state backup/restore |
 | OCI Hyderabad | ✅ | Regional deployment (ap-hyderabad-1) |
 
-## 🛠️ Prerequisites
+1.  Prerequisites
 
-```bash
 # OCI CLI configured
 oci session authenticate --region ap-hyderabad-1
 
@@ -39,8 +38,8 @@ sql admin_password@DBREATP1_high
 Variables (variables.tf):
 TF_VAR_tenancy_ocid = "ocid1.tenancy.oc1..your_tenancy_ocid"
 
-🚀 Quickstart
-bash
+2.  Quickstart
+
 git clone https://github.com/kalyanmurala-git/dbre-oci-terraform-lab
 cd dbre-oci-terraform-lab
 
@@ -50,8 +49,8 @@ terraform plan    # +2 ATPs, +2 Wallets
 terraform apply   # ~10min provisioning
 
 
-🔍 Outputs & Verification
-bash
+3.  Outputs & Verification
+
 # Database OCIDs
 terraform state show 'oci_database_autonomous_database.dbre_multi["atp1"]'
 
@@ -59,7 +58,7 @@ terraform state show 'oci_database_autonomous_database.dbre_multi["atp1"]'
 OCI Console → Database → DBRE-atp1, DBRE-atp2 → Available ✅
 
 
-Connectivity:
+4. Connectivity:
 
 bash
 # Download Wallet (Console: Database → DB Connection → Wallet)
@@ -68,16 +67,16 @@ sql admin/Password@DBREATP1_high
 SQL> SELECT name FROM v$database;  -- DBREATP1
 
 
-🧪 DBRE Test Scenarios
-text
+5.  DBRE Test Scenarios
+
 1. PITR: terraform destroy → apply = backup restore
 2. Scale Test: Add atp3 to map → plan (quota limit)
 3. DR: Cross-region clone (paid)
 4. Monitoring: OCI Events → DB patching automation
 
 
-📁 Repository Structure
-text
+6. Repository Structure
+
 ├── main.tf              # ATP + Wallet resources
 ├── variables.tf         # atp_dbs map configuration
 ├── provider.tf          # OCI provider 6.37.0
@@ -85,8 +84,8 @@ text
 ├── README.md           # This document
 └── LICENSE             # MIT
 
-🚀 Production Extensions
-text
+7.  Production Extensions
+
 CI/CD: GitHub Actions → terraform plan/apply
 State: OCI OSS backend (team sharing)
 Monitoring: OCI Notifications → ATP patching
