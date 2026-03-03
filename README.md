@@ -1,7 +1,6 @@
 # dbre-oci-terraform-lab
 OCI Free Tier Multi-ATP Terraform Lab for Database Reliability Engineering (DBRE). 
 
-# OCI DBRE Terraform Lab: Multi-ATP Provisioning
 
 
 OCI Free Tier (ap-hyderabad-1)
