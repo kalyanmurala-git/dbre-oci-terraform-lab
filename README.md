@@ -1,99 +1,127 @@
-# dbre-oci-terraform-lab
-OCI Free Tier Multi-ATP Terraform Lab for Database Reliability Engineering (DBRE). 
+🚀 DBRE OCI Terraform Lab
 
+OCI Free Tier Multi-ATP Terraform Lab for Database Reliability Engineering (DBRE)
+Region: ap-hyderabad-1
 
-
+🏗 Architecture Overview
 OCI Free Tier (ap-hyderabad-1)
+│
 ├── Compartment: Root/Tenancy
+│
 ├── 2x Always Free ATP Databases
-│ ├── DBREATP1 (1 OCPU, 20GB, OLTP)
-│ └── DBREATP2 (1 OCPU, 20GB, OLTP)
-├── Terraform State: Local (Production: OCI OSS)
-└── Connectivity: Wallet + sqlcl/OCI CLI
+│   ├── DBREATP1 (1 OCPU, 20GB, OLTP)
+│   └── DBREATP2 (1 OCPU, 20GB, OLTP)
+│
+├── Terraform State: Local
+│   (Production: OCI Object Storage Backend)
+│
+└── Connectivity:
+    ├── Wallet
+    ├── SQLcl
+    └── OCI CLI
+    
+✨ Features
+Feature	Status	Description
+Multi-ATP	✅ Live	for_each pattern scales to N databases
+Wallet Automation	✅	oci_database_autonomous_database_wallet
+Free Tier Optimized	✅	Max 2 Always Free ATPs
+DBRE Workflows	✅	Destroy/Recreate, State Backup/Restore
+OCI Hyderabad	✅	Regional deployment (ap-hyderabad-1)
 
-
- Features
- =========================================================================================================
-
-| Feature | Status | Description |
-|---------|--------|-------------|
-| Multi-ATP | ✅ Live | `for_each` pattern scales to N databases |
-| Wallet Automation | ✅ | `oci_database_autonomous_database_wallet` |
-| Free Tier Optimized | ✅ | 2x max ATPs (no scale/upgrade needed) |
-| DBRE Workflows | ✅ | Destroy/recreate, state backup/restore |
-| OCI Hyderabad | ✅ | Regional deployment (ap-hyderabad-1) |
-
-1.  Prerequisites
-
-# OCI CLI configured
+📋 Prerequisites
+1️⃣ OCI CLI Configured
 oci session authenticate --region ap-hyderabad-1
-
-# Terraform 1.9+
+2️⃣ Terraform 1.9+
 terraform version
-
-# sqlcl (optional)
+3️⃣ SQLcl (Optional – for connectivity test)
 sql admin_password@DBREATP1_high
+🔧 Environment Variables
 
-Variables (variables.tf):
-TF_VAR_tenancy_ocid = "ocid1.tenancy.oc1..your_tenancy_ocid"
+Add your tenancy OCID:
 
-2.  Quickstart
+export TF_VAR_tenancy_ocid="ocid1.tenancy.oc1..your_tenancy_ocid"
 
+⚡ Quickstart
 git clone https://github.com/kalyanmurala-git/dbre-oci-terraform-lab
 cd dbre-oci-terraform-lab
-
-# Configure tenancy_ocid
+Initialize
 terraform init
-terraform plan    # +2 ATPs, +2 Wallets
-terraform apply   # ~10min provisioning
+Plan
+terraform plan
+# Expected: +2 ATPs, +2 Wallets
+Apply
+terraform apply
+# ~10 minutes provisioning time
 
-
-3.  Outputs & Verification
-
-# Database OCIDs
+📤 Outputs & Verification
+Get Database OCID
 terraform state show 'oci_database_autonomous_database.dbre_multi["atp1"]'
+Console Verification
+OCI Console → Database → DBRE-atp1 / DBRE-atp2
+Status: Available ✅
 
-# Console Verification
-OCI Console → Database → DBRE-atp1, DBRE-atp2 → Available ✅
-
-
-4. Connectivity:
-
-bash
-# Download Wallet (Console: Database → DB Connection → Wallet)
+🔐 Connectivity Test
+Download Wallet
+Console → Database → DB Connection → Wallet
+Connect Using SQLcl
 export TNS_ADMIN=~/dbre_atp1_wallet
 sql admin/Password@DBREATP1_high
-SQL> SELECT name FROM v$database;  -- DBREATP1
+SELECT name FROM v$database;
+-- Expected: DBREATP1
 
+🧪 DBRE Test Scenarios
+🔁 PITR Simulation
+terraform destroy
+terraform apply
 
-5.  DBRE Test Scenarios
+(Backup restore validation)
 
-1. PITR: terraform destroy → apply = backup restore
-2. Scale Test: Add atp3 to map → plan (quota limit)
-3. DR: Cross-region clone (paid)
-4. Monitoring: OCI Events → DB patching automation
+📈 Scale Test
 
+Add new entry in atp_dbs map:
 
-6. Repository Structure
+atp3 = {
+  display_name = "DBREATP3"
+}
+terraform plan
 
-├── main.tf              # ATP + Wallet resources
-├── variables.tf         # atp_dbs map configuration
-├── provider.tf          # OCI provider 6.37.0
-├── .gitignore           # tfstate protection
-├── README.md           # This document
-└── LICENSE             # MIT
+⚠ Free Tier quota will limit to 2 ATPs.
 
-7.  Production Extensions
+🌍 DR (Paid Feature)
 
-CI/CD: GitHub Actions → terraform plan/apply
-State: OCI OSS backend (team sharing)
-Monitoring: OCI Notifications → ATP patching
-Kubernetes: CNPG operator (next lab)
-MLOps: OCI Data Science integration
+Cross-region clone
 
+Backup-based restore
 
-📈 Author
+📡 Monitoring Automation
+
+OCI Events
+
+DB patching automation
+
+Notifications integration
+
+📁 Repository Structure
+├── main.tf          # ATP + Wallet resources
+├── variables.tf     # atp_dbs map configuration
+├── provider.tf      # OCI provider (6.37.0)
+├── .gitignore       # tfstate protection
+├── README.md        # Documentation
+└── LICENSE          # MIT
+
+🏢 Production Extensions
+Area	Enhancement
+CI/CD	GitHub Actions → terraform plan/apply
+State	OCI Object Storage Backend
+Monitoring	OCI Notifications
+Kubernetes	CloudNativePG Operator
+MLOps	OCI Data Science Integration
+
+👨‍💻 Author
+
 Kalyan Murala
 Senior Database Reliability Engineer
-15+ Years: Oracle | Exadata | OCI | AWS | Kubernetes | MLOps
+
+15+ Years Experience
+Oracle | Exadata | OCI | AWS | Kubernetes | MLOps
 
