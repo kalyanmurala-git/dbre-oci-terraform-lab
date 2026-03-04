@@ -1,0 +1,64 @@
+name: ATP1 Health Check
+
+on:
+  workflow_dispatch:  # Manual run button
+
+jobs:
+  atp1-health:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # ── Step 1: Install OCI CLI ──────────────────────────────────────────────
+    - name: Install OCI CLI
+      run: |
+        python -m pip install --upgrade pip
+        pip install oci-cli
+
+    # ── Step 2: Configure OCI CLI with API Key auth ──────────────────────────
+    - name: Configure OCI CLI
+      run: |
+        mkdir -p ~/.oci
+        cat > ~/.oci/config << EOF
+        [DEFAULT]
+        user=${{ secrets.OCI_USER_OCID }}
+        fingerprint=${{ secrets.OCI_FINGERPRINT }}
+        tenancy=${{ secrets.TENANCY_OCID }}
+        region=ap-hyderabad-1
+        key_file=~/.oci/private_key.pem
+        EOF
+        echo "${{ secrets.OCI_PRIVATE_KEY }}" > ~/.oci/private_key.pem
+        chmod 600 ~/.oci/private_key.pem
+        # Verify config works
+        oci iam region list --output table
+
+    # ── Step 3: Download ATP1 Wallet via OCI CLI (NOT curl) ──────────────────
+    - name: Download ATP1 wallet
+      run: |
+        mkdir -p /tmp/wallet_atp1
+        oci db autonomous-database generate-wallet \
+          --autonomous-database-id ${{ secrets.ATP1_DB_OCID }} \
+          --password "${{ secrets.ATP1_WALLET_PASS }}" \
+          --file /tmp/wallet_atp1/wallet_atp1.zip \
+          --generate-type ALL
+        unzip -o /tmp/wallet_atp1/wallet_atp1.zip -d /tmp/wallet_atp1
+        echo "Wallet contents:"
+        ls -la /tmp/wallet_atp1/
+
+    # ── Step 4: Install SQLcl ─────────────────────────────────────────────────
+    - name: Install Oracle SQLcl
+      uses: cpruvost/setup-sqlcl@v1.0.0
+
+    # ── Step 5: Health Check ──────────────────────────────────────────────────
+    - name: Check ATP1 database status
+      env:
+        TNS_ADMIN: /tmp/wallet_atp1
+      run: |
+        ./sqlcl/bin/sql -V
+        ./sqlcl/bin/sql "${{ secrets.ATP1_ADMIN_USER }}/${{ secrets.ATP1_ADMIN_PASS }}@DBREATP1_high" << 'EOF'
+        set heading off feedback off pages 0
+        select name || ' - ' || open_mode || ' - STATUS: OK' from v$database;
+        exit;
+        EOF
