@@ -1,7 +1,7 @@
 name: ATP1 Health Check
 
 on:
-  workflow_dispatch:  # Manual run button
+  workflow_dispatch:
 
 jobs:
   atp1-health:
@@ -17,25 +17,40 @@ jobs:
         python -m pip install --upgrade pip
         pip install oci-cli
 
-    # ── Step 2: Configure OCI CLI with API Key auth ──────────────────────────
+    # ── Step 2: Configure OCI CLI ────────────────────────────────────────────
     - name: Configure OCI CLI
+      env:
+        OCI_USER_OCID: ${{ secrets.OCI_USER_OCID }}
+        OCI_FINGERPRINT: ${{ secrets.OCI_FINGERPRINT }}
+        TENANCY_OCID: ${{ secrets.TENANCY_OCID }}
+        OCI_PRIVATE_KEY: ${{ secrets.OCI_PRIVATE_KEY }}
+        OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING: "True"
+        SUPPRESS_LABEL_WARNING: "True"
       run: |
         mkdir -p ~/.oci
-        cat > ~/.oci/config << EOF
-        [DEFAULT]
-        user=${{ secrets.OCI_USER_OCID }}
-        fingerprint=${{ secrets.OCI_FINGERPRINT }}
-        tenancy=${{ secrets.TENANCY_OCID }}
-        region=ap-hyderabad-1
-        key_file=~/.oci/private_key.pem
-        EOF
-        echo "${{ secrets.OCI_PRIVATE_KEY }}" > ~/.oci/private_key.pem
+
+        # Write private key first
+        printf '%s\n' "${OCI_PRIVATE_KEY}" > ~/.oci/private_key.pem
         chmod 600 ~/.oci/private_key.pem
-        # Verify config works
+
+        # Write config using printf (avoids heredoc indentation issues)
+        printf '[DEFAULT]\nuser=%s\nfingerprint=%s\ntenancy=%s\nregion=ap-hyderabad-1\nkey_file=/home/runner/.oci/private_key.pem\n' \
+          "${OCI_USER_OCID}" "${OCI_FINGERPRINT}" "${TENANCY_OCID}" > ~/.oci/config
+        chmod 600 ~/.oci/config
+
+        # Verify config looks correct (mask sensitive parts)
+        echo "--- Config check ---"
+        grep -E "^(region|fingerprint|key_file)" ~/.oci/config
+        echo "user OCID set: $(grep -c '^user=ocid' ~/.oci/config) line(s)"
+        echo "tenancy OCID set: $(grep -c '^tenancy=ocid' ~/.oci/config) line(s)"
+
+        # Test connectivity
         oci iam region list --output table
 
-    # ── Step 3: Download ATP1 Wallet via OCI CLI (NOT curl) ──────────────────
+    # ── Step 3: Download ATP1 Wallet ─────────────────────────────────────────
     - name: Download ATP1 wallet
+      env:
+        OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING: "True"
       run: |
         mkdir -p /tmp/wallet_atp1
         oci db autonomous-database generate-wallet \
@@ -55,6 +70,7 @@ jobs:
     - name: Check ATP1 database status
       env:
         TNS_ADMIN: /tmp/wallet_atp1
+        OCI_CLI_SUPPRESS_FILE_PERMISSIONS_WARNING: "True"
       run: |
         ./sqlcl/bin/sql -V
         ./sqlcl/bin/sql "${{ secrets.ATP1_ADMIN_USER }}/${{ secrets.ATP1_ADMIN_PASS }}@DBREATP1_high" << 'EOF'
