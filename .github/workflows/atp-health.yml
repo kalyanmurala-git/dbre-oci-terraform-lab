@@ -1,0 +1,5 @@
+name: ATP Health Check
+
+on:
+  workflow_dispatch:  # Manual button
+  schedule
