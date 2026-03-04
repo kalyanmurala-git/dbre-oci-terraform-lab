@@ -1,5 +1,11 @@
-name: ATP Health Check
+name: ATP1 Health Check (DBRE)
 
 on:
-  workflow_dispatch:  # Manual button
-  schedule
+  workflow_dispatch:  # Manual run button
+
+jobs:
+  test-atp1:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name
